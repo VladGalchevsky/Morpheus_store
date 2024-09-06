@@ -56,9 +56,9 @@ class UpdatedUserResponse(BaseModel):
 
 
 class UpdateUserRequest(BaseModel):
-    name: Optional[str] = Field(None, min_length=1)
-    surname: Optional[str] = Field(None, min_length=1)
-    email: Optional[EmailStr]
+    name: str | None = Field(None, min_length=1)
+    surname: str | None = Field(None, min_length=1)
+    email: EmailStr | None
 
     @validator("name")
     def validate_name(cls, value):

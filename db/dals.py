@@ -27,7 +27,7 @@ class UserDAL:
         await self.db_session.flush()
         return new_user
     
-    async def delete_user(self, user_id: UUID) -> Union[UUID, None]:
+    async def delete_user(self, user_id: UUID) -> UUID | None:
         query = update(User).\
             where(and_(User.user_id == user_id, User.is_active == True)).\
             values(is_active=False).returning(User.user_id)
@@ -36,14 +36,14 @@ class UserDAL:
         if deleted_user_id_row is not None:
             return deleted_user_id_row[0]
 
-    async def get_user_by_id(self, user_id: UUID) -> Union[User, None]:
+    async def get_user_by_id(self, user_id: UUID) -> User | None:
         query = select(User).where(User.user_id == user_id)
         res = await self.db_session.execute(query)
         user_row = res.fetchone()
         if user_row is not None:
             return user_row[0]
 
-    async def update_user(self, user_id: UUID, **kwargs) -> Union[UUID, None]:
+    async def update_user(self, user_id: UUID, **kwargs) -> UUID | None:
         query = update(User). \
             where(and_(User.user_id == user_id, User.is_active == True)). \
             values(kwargs). \
