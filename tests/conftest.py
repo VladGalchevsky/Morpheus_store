@@ -57,6 +57,11 @@ async def clean_tables(async_session_test):
 
 async def _get_test_db():
     try:
+        # create async engine for interaction with database
+        test_engine = create_async_engine(settings.TEST_DATABASE_URL, future=True, echo=True)
+
+        # create session for the interaction with database
+        test_async_session = sessionmaker(test_engine, expire_on_commit=False, class_=AsyncSession)
         yield test_async_session()
     finally:
         pass
@@ -93,8 +98,23 @@ async def get_user_from_database(asyncpg_pool):
 @pytest.fixture
 async def create_user_in_database(asyncpg_pool):
 
-    async def create_user_in_database(user_id: str, name: str, surname: str, email: str, is_active: bool):
+    async def create_user_in_database(
+            user_id: str, 
+            name: str, 
+            surname: str, 
+            email: str, 
+            is_active: bool,
+            hashed_password: str,
+        ):
         async with asyncpg_pool.acquire() as connection:
-            return await connection.execute("""INSERT INTO users VALUES ($1, $2, $3, $4, $5)""",
-                                            user_id, name, surname, email, is_active)
+            return await connection.execute(
+                """INSERT INTO users VALUES ($1, $2, $3, $4, $5, $6)""",
+                user_id, 
+                name, 
+                surname, 
+                email, 
+                is_active,
+                hashed_password,
+            )
+        
     return create_user_in_database

@@ -8,7 +8,8 @@ async def test_create_user(client, get_user_from_database):
     user_data = {
       "name": "Nikolai",
       "surname": "Sviridov",
-      "email": "lol@kek.com"
+      "email": "lol@kek.com",
+      "password": "SamplePass1!",
     }
     resp = client.post("/user/", data=json.dumps(user_data))
     data_from_resp = resp.json()
@@ -72,7 +73,8 @@ async def test_update_user(client, create_user_in_database, get_user_from_databa
       "name": "Nikolai",
       "surname": "Sviridov",
       "email": "lol@kek.com",
-      "is_active": True
+      "is_active": True,
+      "hashed_password": "SampleHashedPass",
     }
     user_data_updated = {
       "name": "Ivan",
