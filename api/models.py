@@ -3,6 +3,7 @@ import uuid
 
 from fastapi import HTTPException
 from pydantic import BaseModel, EmailStr, Field, validator
+from enums import OrderStatusEnum
 
 
 # BLOCK WITH API MODELS #
@@ -15,6 +16,7 @@ class TunedModel(BaseModel):
         """tells pydantic to convert even non dict obj to json"""
         orm_mode = True
 
+# BLOCK WITH USER MODELS #
 
 class ShowUser(TunedModel):
     user_id: uuid.UUID
@@ -22,7 +24,7 @@ class ShowUser(TunedModel):
     surname: str
     email: EmailStr
     is_active: bool
-
+    orders: list["ShowOrder"] | None = None
 
 class UserCreate(BaseModel):
     name: str
@@ -56,9 +58,9 @@ class UpdatedUserResponse(BaseModel):
 
 
 class UpdateUserRequest(BaseModel):
-    name: str | None = Field(None, min_length=1)
-    surname: str | None = Field(None, min_length=1)
-    email: EmailStr | None
+    name: str | None = Field(default=None, min_length=1, examples=["Vladislav"])
+    surname: str | None = Field(default=None, min_length=1, examples=["Amosov"])
+    email: EmailStr | None = Field(default=None, examples=["lol@kek.com"])
 
     @validator("name")
     def validate_name(cls, value):
@@ -76,6 +78,64 @@ class UpdateUserRequest(BaseModel):
             )
         return value
     
+    # BLOCK WITH ORDER MODELS #
+
+class CreateOrder(BaseModel):
+    user_id: uuid.UUID
+    product_id: uuid.UUID
+    quantity: int = Field(gt=0, description="Quantity should be greater than 0")
+    total_price: float = Field(gt=0.0, description="Price must be greater than 0")
+    description: str | None = None
+
+    @validator("quantity")
+    def validate_quantity(cls, value):
+        if value <= 0:
+            raise HTTPException(status_code=422, detail="Quantity should be greater than 0")
+        return value
+
+    @validator("total_price")
+    def validate_total_price(cls, value):
+        if value <= 0:
+            raise HTTPException(status_code=422, detail="Total price should be greater than 0")
+        return value
+
+
+class ShowOrder(TunedModel):
+    order_id: uuid.UUID
+    product_id: uuid.UUID
+    quantity: int
+    total_price: float
+    description: str | None = None
+    order_status: OrderStatusEnum
+    user: ShowUser       # Повернення об'єкта користувача
+
+
+class UpdateOrder(BaseModel):
+    product_id: uuid.UUID | None
+    quantity: int | None
+    total_price: float | None
+    description: str | None = None
+    order_status: OrderStatusEnum | None
+
+    @validator("quantity", pre=True, always=True)
+    def validate_quantity(cls, value):
+        if value is not None and value <= 0:
+            raise HTTPException(status_code=422, detail="Quantity should be greater than 0")
+        return value
+
+    @validator("total_price", pre=True, always=True)
+    def validate_total_price(cls, value):
+        if value is not None and value <= 0:
+            raise HTTPException(status_code=422, detail="Total price should be greater than 0")
+        return value
+
+
+class DeleteOrderResponse(BaseModel):
+    deleted_order_id: uuid.UUID
+
+class UpdatedOrderResponse(BaseModel):
+    updated_order_id: uuid.UUID
+
 
 class Token(BaseModel):
     access_token: str

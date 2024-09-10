@@ -3,7 +3,8 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.routing import APIRouter
 
-from api.handlers import user_router
+from api.user_handlers import user_router
+from api.order_handlers import order_router
 from api.login_handler import login_router
 
 # BLOCK WITH API ROUTES #
@@ -16,6 +17,8 @@ main_api_router = APIRouter()
 
 # set routes to the app instance 
 main_api_router.include_router(user_router, prefix="/user", tags=["user"])
+
+main_api_router.include_router(order_router, prefix="/order", tags=["order"])
 
 main_api_router.include_router(login_router, prefix="/login", tags=["login"])
 
