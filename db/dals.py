@@ -66,8 +66,15 @@ class OrderDAL:
     def __init__(self, db_session: AsyncSession):
         self.db_session = db_session
 
-    async def create_order(self, user_id: UUID, product_id: UUID, quantity: int, \
-                           total_price: float, description: str) -> Order:
+    async def create_order(
+            self, 
+            user_id: UUID, 
+            product_id: UUID, 
+            quantity: int,
+            total_price: float, 
+            description: str,
+        ) -> Order:
+        
         new_order = Order(
             user_id=user_id,
             product_id=product_id,
@@ -117,7 +124,7 @@ class OrderDAL:
         if updated_order_id_row is not None:
             return updated_order_id_row[0]
         
-        # Зміна тільки статусу замовлення    
+        # Change the order status only    
     async def change_order_status(self, order_id: UUID, new_status: OrderStatusEnum) -> UUID | None:
         query = update(Order). \
             where(and_(Order.order_id == order_id, Order.order_status != OrderStatusEnum.DELETED)). \

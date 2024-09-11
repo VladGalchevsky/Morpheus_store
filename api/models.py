@@ -2,7 +2,7 @@ import re
 import uuid
 
 from fastapi import HTTPException
-from pydantic import BaseModel, EmailStr, Field, validator
+from pydantic import BaseModel, EmailStr, Field, validator, root_validator
 from enums import OrderStatusEnum
 
 
@@ -24,7 +24,6 @@ class ShowUser(TunedModel):
     surname: str
     email: EmailStr
     is_active: bool
-    orders: list["ShowOrder"] | None = None
 
 class UserCreate(BaseModel):
     name: str
@@ -87,19 +86,6 @@ class CreateOrder(BaseModel):
     total_price: float = Field(gt=0.0, description="Price must be greater than 0")
     description: str | None = None
 
-    @validator("quantity")
-    def validate_quantity(cls, value):
-        if value <= 0:
-            raise HTTPException(status_code=422, detail="Quantity should be greater than 0")
-        return value
-
-    @validator("total_price")
-    def validate_total_price(cls, value):
-        if value <= 0:
-            raise HTTPException(status_code=422, detail="Total price should be greater than 0")
-        return value
-
-
 class ShowOrder(TunedModel):
     order_id: uuid.UUID
     product_id: uuid.UUID
@@ -107,8 +93,7 @@ class ShowOrder(TunedModel):
     total_price: float
     description: str | None = None
     order_status: OrderStatusEnum
-    user: ShowUser       # Повернення об'єкта користувача
-
+    user: ShowUser 
 
 class UpdateOrder(BaseModel):
     product_id: uuid.UUID | None
@@ -128,7 +113,13 @@ class UpdateOrder(BaseModel):
         if value is not None and value <= 0:
             raise HTTPException(status_code=422, detail="Total price should be greater than 0")
         return value
-
+    
+    @root_validator(pre=True)
+    def validate_non_empty_update(cls, values):
+        # Raise an error if all fields are None
+        if not any(values.values()):
+            raise HTTPException(status_code=422, detail="At least one parameter for order update must be provided")
+        return values
 
 class DeleteOrderResponse(BaseModel):
     deleted_order_id: uuid.UUID

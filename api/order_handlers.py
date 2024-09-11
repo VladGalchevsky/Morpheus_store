@@ -89,35 +89,30 @@ async def create_order(body: CreateOrder, db: AsyncSession = Depends(get_db)) ->
         logger.error(err)
         raise HTTPException(status_code=503, detail=f"Database error: {err}")
 
-@order_router.delete("/", response_model=DeleteOrderResponse)
+@order_router.delete("/{order_id}", response_model=DeleteOrderResponse)
 async def delete_order(order_id: UUID, db: AsyncSession = Depends(get_db)) -> DeleteOrderResponse:
     deleted_order_id = await _delete_order(order_id, db)
     if deleted_order_id is None:
         raise HTTPException(status_code=404, detail=f"Order with id {order_id} not found.")
     return DeleteOrderResponse(deleted_order_id=deleted_order_id)
 
-@order_router.get("/", response_model=ShowOrder)
+@order_router.get("/{order_id}", response_model=ShowOrder)
 async def get_order_by_id(order_id: UUID, db: AsyncSession = Depends(get_db)) -> ShowOrder:
     order = await _get_order_by_id(order_id, db)
     if order is None:
         raise HTTPException(status_code=404, detail=f"Order with id {order_id} not found.")
     return order
 
-# Роутер для демонстрації всіх замовлень
-@order_router.get("/all", response_model=list[ShowOrder])
+# Router for displaying all orders
+@order_router.get("/", response_model=list[ShowOrder])
 async def get_all_orders(db: AsyncSession = Depends(get_db)) -> list[ShowOrder]:
     return await _get_all_orders(db)
 
-@order_router.patch("/", response_model=UpdatedOrderResponse)
+@order_router.patch("/{order_id}", response_model=UpdatedOrderResponse)
 async def update_order_by_id(
     order_id: UUID, body: UpdateOrder, db: AsyncSession = Depends(get_db)
 ) -> UpdatedOrderResponse:
     updated_order_params = body.dict(exclude_none=True)
-    if updated_order_params == {}:
-        raise HTTPException(
-            status_code=422, 
-            detail="At least one parameter for order update info should be provided"
-        )
     order = await _get_order_by_id(order_id, db)
     if order is None:
         raise HTTPException(
