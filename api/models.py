@@ -14,7 +14,7 @@ LETTER_MATCH_PATTERN = re.compile(r"^[а-яА-Яa-zA-Z\-]+$")
 class TunedModel(BaseModel):
     class Config:
         """tells pydantic to convert even non dict obj to json"""
-        orm_mode = True
+        form_attribute = True
 
 # BLOCK WITH USER MODELS #
 
