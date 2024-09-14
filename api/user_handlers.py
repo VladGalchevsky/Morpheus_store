@@ -1,7 +1,7 @@
 from logging import getLogger
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -57,7 +57,7 @@ async def _get_user_by_id(user_id, session: AsyncSession) -> ShowUser | None:
         user_with_orders = await user_dal.get_user_by_id_with_orders(user_id=user_id)
         return user_with_orders
 
-@user_router.post("/", response_model=ShowUser)
+@user_router.post("/", response_model=ShowUser, status_code=status.HTTP_201_CREATED)
 async def create_user(body: UserCreate, db: AsyncSession = Depends(get_db)) -> ShowUser:
     try:
         return await _create_new_user(body, db)
