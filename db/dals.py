@@ -1,9 +1,12 @@
 from uuid import UUID
 
-from sqlalchemy import and_, select, update, func
+from sqlalchemy.orm import joinedload
+from sqlalchemy import and_, update, func
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
 
 from db.models import User, Order
+from api.models import ShowUser, ShowOrder
 from enums import OrderStatusEnum
 
 
@@ -36,29 +39,30 @@ class UserDAL:
         if deleted_user_id_row is not None:
             return deleted_user_id_row[0]
 
-    async def get_user_by_id_with_orders(self, user_id: UUID) -> dict | None:
-        query = select(
-            User,func.count(Order.order_id).label("total_orders"),
-            func.sum(Order.total_price).label("total_amount")
-        ).join(Order).where(and_(
-            User.user_id == user_id,
-            Order.order_status != OrderStatusEnum.DELETED)
-        ).group_by(User.user_id)
-
+    async def get_user_by_id_with_orders(self, user_id: UUID) -> ShowUser | None:
+        query = (
+            select(User)
+            .options(joinedload(User.orders))
+            .where(User.user_id == user_id)
+        )
         res = await self.db_session.execute(query)
-        user_row = res.fetchone()
+        user = res.scalars().first()
 
-        print(user_row)
-
-        if user_row is not None:
-            user = user_row[0]
-            total_orders = user_row[1]
-            total_amount = user_row[2]
-            return {
-                "user": user,
-                "total_orders": total_orders,
-                "total_amount": total_amount
-            }
+        if user:
+            orders = [order for order in user.orders if order.order_status != OrderStatusEnum.DELETED]
+            total_orders = len(orders)
+            total_amount = sum(order.total_price for order in orders)
+        
+            return ShowUser(
+                user_id=user.user_id,
+                name=user.name,
+                surname=user.surname,
+                email=user.email,
+                is_active=user.is_active,
+                total_orders=total_orders,
+                total_amount=total_amount
+            )
+    
         return None
     
     async def get_user_by_email(self, email: str) -> User | None:
@@ -86,8 +90,7 @@ class OrderDAL:
 
     async def create_order(
             self, 
-            user_id: UUID, 
-            product_id: UUID, 
+            user_id: UUID,  
             quantity: int,
             total_price: float, 
             description: str,
@@ -95,7 +98,6 @@ class OrderDAL:
         
         new_order = Order(
             user_id=user_id,
-            product_id=product_id,
             quantity=quantity,
             total_price=total_price,
             description=description
@@ -115,14 +117,14 @@ class OrderDAL:
             return deleted_order_id_row[0]
 
     async def get_order_by_id(self, order_id: UUID) -> Order | None:
-        query = select(Order).where(Order.order_id == order_id)
+        query = select(Order).options(joinedload(Order.user)).where(Order.order_id == order_id)
         res = await self.db_session.execute(query)
         order_row = res.fetchone()
         if order_row is not None:
             return order_row[0]
     
     async def get_all_orders(self) -> list[Order]:
-        query = select(Order).order_by(Order.order_date.desc())
+        query = select(Order).options(joinedload(Order.user)).order_by(Order.order_date.desc())
         res = await self.db_session.execute(query)
         return res.scalars().all()
 

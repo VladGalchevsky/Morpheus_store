@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.models import CreateOrder, ShowOrder, UpdateOrder, DeleteOrderResponse, UpdatedOrderResponse
+from api.models import CreateOrder, ShowOrder, UpdateOrder, DeleteOrderResponse, UpdatedOrderResponse, ShowUser
 from db.dals import OrderDAL
 from db.session import get_db
 
@@ -13,73 +13,77 @@ logger = getLogger(__name__)
 
 order_router = APIRouter()
 
-async def _create_new_order(body: CreateOrder, db: AsyncSession) -> ShowOrder:
-    async with db as session:
-        async with session.begin():
-            order_dal = OrderDAL(session)
-            order = await order_dal.create_order(
-                user_id=body.user_id,
-                product_id=body.product_id,
-                quantity=body.quantity,
-                total_price=body.total_price,
-                description=body.description
-            )
+async def _create_new_order(body: CreateOrder, session: AsyncSession) -> ShowOrder:
+    async with session.begin():
+        order_dal = OrderDAL(session)
+        order = await order_dal.create_order(
+            user_id=body.user_id,
+            quantity=body.quantity,
+            total_price=body.total_price,
+            description=body.description
+        )
+        return ShowOrder(
+            order_id=order.order_id,
+            quantity=order.quantity,
+            total_price=order.total_price,
+            description=order.description,
+            order_status=order.order_status
+        )
+        
+async def _delete_order(order_id: UUID, session: AsyncSession) -> UUID | None:
+    async with session.begin():
+        order_dal = OrderDAL(session)
+        delete_order_id = await order_dal.delete_order(order_id)
+        return delete_order_id
+        
+async def _update_order(updated_order_params: dict, order_id: UUID, session: AsyncSession) -> UUID | None:
+    async with session.begin():
+        order_dal = OrderDAL(session)
+        updated_order_id = await order_dal.update_order(
+            order_id=order_id, **updated_order_params
+        )
+        return updated_order_id
+        
+async def _get_order_by_id(order_id: UUID, session: AsyncSession) -> ShowOrder | None:
+    async with session.begin():
+        order_dal = OrderDAL(session)
+        order = await order_dal.get_order_by_id(order_id)
+        if order is not None:
             return ShowOrder(
                 order_id=order.order_id,
-                product_id=order.product_id,
                 quantity=order.quantity,
                 total_price=order.total_price,
                 description=order.description,
                 order_status=order.order_status,
-                user=order.user 
+                user=ShowUser(
+                    user_id=order.user.user_id,
+                    name=order.user.name,
+                    surname=order.user.surname,
+                    email=order.user.email,
+                    is_active=order.user.is_active,
+                ) if order.user else None
             )
-        
-async def _delete_order(order_id: UUID, db: AsyncSession) -> UUID | None:
-    async with db as session:
-        async with session.begin():
-            order_dal = OrderDAL(session)
-            delete_order_id = await order_dal.delete_order(order_id)
-            return delete_order_id
-        
-async def _update_order(updated_order_params: dict, order_id: UUID, db: AsyncSession) -> UUID | None:
-    async with db as session:
-        async with session.begin():
-            order_dal = OrderDAL(session)
-            updated_order_id = await order_dal.update_order(
-                order_id=order_id, **updated_order_params
-            )
-            return updated_order_id
-        
-async def _get_order_by_id(order_id: UUID, db: AsyncSession) -> ShowOrder | None:
-    async with db as session:
-        async with session.begin():
-            order_dal = OrderDAL(session)
-            order = await order_dal.get_order_by_id(order_id)
-            if order is not None:
-                return ShowOrder(
-                    order_id=order.order_id,
-                    product_id=order.product_id,
-                    quantity=order.quantity,
-                    total_price=order.total_price,
-                    description=order.description,
-                    order_status=order.order_status,
-                    user=order.user
-                )
 
-async def _get_all_orders(db: AsyncSession) -> list[ShowOrder]:
-    async with db as session:
-        async with session.begin():
-            order_dal = OrderDAL(session)
-            orders = await order_dal.get_all_orders()
-            return [ShowOrder(
+async def _get_all_orders(session: AsyncSession) -> list[ShowOrder]:
+    async with session.begin():
+        order_dal = OrderDAL(session)
+        orders = await order_dal.get_all_orders()
+        return [
+            ShowOrder(
                 order_id=order.order_id,
-                product_id=order.product_id,
                 quantity=order.quantity,
                 total_price=order.total_price,
                 description=order.description,
                 order_status=order.order_status,
-                user=order.user 
-            ) for order in orders]
+                user=ShowUser(
+                    user_id=order.user.user_id,
+                    name=order.user.name,
+                    surname=order.user.surname,
+                    email=order.user.email,
+                    is_active=order.user.is_active
+                ) if order.user else None
+            ) for order in orders
+        ]
         
 @order_router.post("/", response_model=ShowOrder)
 async def create_order(body: CreateOrder, db: AsyncSession = Depends(get_db)) -> ShowOrder:

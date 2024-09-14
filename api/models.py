@@ -24,6 +24,8 @@ class ShowUser(TunedModel):
     surname: str
     email: EmailStr
     is_active: bool
+    total_orders: int | None = None
+    total_amount: float | None = None
 
 class UserCreate(BaseModel):
     name: str
@@ -81,22 +83,19 @@ class UpdateUserRequest(BaseModel):
 
 class CreateOrder(BaseModel):
     user_id: uuid.UUID
-    product_id: uuid.UUID
     quantity: int = Field(gt=0, description="Quantity should be greater than 0")
     total_price: float = Field(gt=0.0, description="Price must be greater than 0")
     description: str | None = None
 
 class ShowOrder(TunedModel):
     order_id: uuid.UUID
-    product_id: uuid.UUID
     quantity: int
     total_price: float
     description: str | None = None
     order_status: OrderStatusEnum
-    user: ShowUser 
+    user: ShowUser | None = None
 
 class UpdateOrder(BaseModel):
-    product_id: uuid.UUID | None
     quantity: int | None
     total_price: float | None
     description: str | None = None
