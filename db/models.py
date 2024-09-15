@@ -28,7 +28,6 @@ class Order(Base):
 
     order_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.user_id"), nullable=False)
-    product_id = Column(UUID(as_uuid=True), nullable=False)
     quantity = Column(INTEGER, nullable=False)
     total_price = Column(FLOAT, nullable=False)
     description = Column(String, nullable=True)
