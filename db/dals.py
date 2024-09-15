@@ -40,19 +40,25 @@ class UserDAL:
             return deleted_user_id_row[0]
 
     async def get_user_by_id_with_orders(self, user_id: UUID) -> ShowUser | None:
-        query = (
-            select(User)
-            .options(joinedload(User.orders))
-            .where(User.user_id == user_id)
-        )
-        res = await self.db_session.execute(query)
-        user = res.scalars().first()
-
-        if user:
-            orders = [order for order in user.orders if order.order_status != OrderStatusEnum.DELETED]
-            total_orders = len(orders)
-            total_amount = sum(order.total_price for order in orders)
+        query_user = (select(User).where(User.user_id == user_id))
+        res_user = await self.db_session.execute(query_user)
+        user = res_user.scalars().first()
         
+        if user:
+            query_orders = (
+                select(
+                    func.count(Order.order_id).label("total_orders"),
+                    func.sum(Order.total_price).label("total_amount")
+                )
+                .where(Order.user_id == user_id, 
+                       Order.order_status != OrderStatusEnum.DELETED)
+            )
+            res_orders = await self.db_session.execute(query_orders)
+            result_orders = res_orders.first()
+
+            total_orders = result_orders.total_orders or 0
+            total_amount = result_orders.total_amount or 0.0
+
             return ShowUser(
                 user_id=user.user_id,
                 name=user.name,
@@ -62,9 +68,8 @@ class UserDAL:
                 total_orders=total_orders,
                 total_amount=total_amount
             )
-    
         return None
-    
+                                          
     async def get_user_by_email(self, email: str) -> User | None:
         query = select(User).where(User.email == email)
         res = await self.db_session.execute(query)
