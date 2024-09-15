@@ -44,31 +44,34 @@ class UserDAL:
         res_user = await self.db_session.execute(query_user)
         user = res_user.scalars().first()
         
-        if user:
-            query_orders = (
-                select(
-                    func.count(Order.order_id).label("total_orders"),
-                    func.sum(Order.total_price).label("total_amount")
-                )
-                .where(Order.user_id == user_id, 
-                       Order.order_status != OrderStatusEnum.DELETED)
+        if not user:
+            return None
+        
+        query_orders = (
+            select(
+                func.count(Order.order_id).label("total_orders"),
+                func.sum(Order.total_price).label("total_amount")
             )
-            res_orders = await self.db_session.execute(query_orders)
-            result_orders = res_orders.first()
-
-            total_orders = result_orders.total_orders or 0
-            total_amount = result_orders.total_amount or 0.0
-
-            return ShowUser(
-                user_id=user.user_id,
-                name=user.name,
-                surname=user.surname,
-                email=user.email,
-                is_active=user.is_active,
-                total_orders=total_orders,
-                total_amount=total_amount
+            .where(
+                Order.user_id == user_id, 
+                Order.order_status != OrderStatusEnum.DELETED
             )
-        return None
+        )
+        res_orders = await self.db_session.execute(query_orders)
+        result_orders = res_orders.first()
+
+        total_orders = result_orders.total_orders or 0
+        total_amount = result_orders.total_amount or 0.0
+
+        return ShowUser(
+            user_id=user.user_id,
+            name=user.name,
+            surname=user.surname,
+            email=user.email,
+            is_active=user.is_active,
+            total_orders=total_orders,
+            total_amount=total_amount
+        )
                                           
     async def get_user_by_email(self, email: str) -> User | None:
         query = select(User).where(User.email == email)
