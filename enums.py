@@ -7,3 +7,9 @@ class OrderStatusEnum(StrEnum):
     DELIVERED = "DELIVERED"
     CANCELED = "CANCELED"
     DELETED = "DELETED"
+
+
+class ProductStatusEnum(StrEnum):
+    ACTIVE = "ACTIVE"
+    OUT_OF_STOCK = "OUT_OF_STOCK"
+    DELETED = "DELETED"

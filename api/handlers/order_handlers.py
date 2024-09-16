@@ -5,9 +5,12 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.models import CreateOrder, ShowOrder, UpdateOrder, DeleteOrderResponse, UpdatedOrderResponse, ShowUser
-from db.dals import OrderDAL
+from api.models.order import CreateOrder, ShowOrder, UpdateOrder, DeleteOrderResponse, UpdatedOrderResponse
+from api.models.user import ShowUser
+from db.dals.order_dal import OrderDAL
+from db.dals.product_dal import ProductDAL
 from db.session import get_db
+from enums import OrderStatusEnum
 
 logger = getLogger(__name__)
 
@@ -15,6 +18,13 @@ order_router = APIRouter()
 
 async def _create_new_order(body: CreateOrder, session: AsyncSession) -> ShowOrder:
     async with session.begin():
+        product_dal = ProductDAL(session)
+
+        # Сheck the availability of products in the warehouse
+        product = await product_dal.get_product_by_id(body.product_id)
+        if product.stock_quantity < body.quantity:
+            raise HTTPException(status_code=400, detail="Insufficient stock for this product.")
+
         order_dal = OrderDAL(session)
         order = await order_dal.create_order(
             user_id=body.user_id,
@@ -22,6 +32,10 @@ async def _create_new_order(body: CreateOrder, session: AsyncSession) -> ShowOrd
             total_price=body.total_price,
             description=body.description
         )
+
+        # Update the amount of product in stock
+        await product_dal.update_stock(body.product_id, -body.quantity)     
+
         return ShowOrder(
             order_id=order.order_id,
             quantity=order.quantity,
@@ -33,6 +47,17 @@ async def _create_new_order(body: CreateOrder, session: AsyncSession) -> ShowOrd
 async def _delete_order(order_id: UUID, session: AsyncSession) -> UUID | None:
     async with session.begin():
         order_dal = OrderDAL(session)
+        product_dal = ProductDAL(session)
+
+        # Receive order data
+        order = await order_dal.get_order_by_id(order_id)
+        if not order or order.order_status == OrderStatusEnum.DELETED:
+            return None
+
+        # Returning the quantity of products to the warehouse
+        await product_dal.update_stock(order.product_id, order.quantity)
+
+        # Mark the order as deleted
         delete_order_id = await order_dal.delete_order(order_id)
         return delete_order_id
         
