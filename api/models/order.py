@@ -4,7 +4,7 @@ from fastapi import HTTPException
 from pydantic import BaseModel, Field, validator, root_validator
 from enums import OrderStatusEnum
 
-from api.models.user_models import ShowUser
+from api.models.user import ShowUser
 
 
 class TunedModel(BaseModel):

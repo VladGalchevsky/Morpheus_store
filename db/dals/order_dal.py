@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
 from db.models import Order
-from api.models.order_models import ShowOrder
+from api.models.order import ShowOrder
 from enums import OrderStatusEnum
 
 

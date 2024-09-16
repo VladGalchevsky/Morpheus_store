@@ -5,8 +5,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.models.product_models import CreateProduct, ShowProduct, UpdateProduct, DeleteProductResponse, UpdatedProductResponse
-from db.dals.product_dals import ProductDAL
+from api.models.product import CreateProduct, ShowProduct, UpdateProduct, DeleteProductResponse, UpdatedProductResponse
+from db.dals.product_dal import ProductDAL
 from db.session import get_db
 
 logger = getLogger(__name__)

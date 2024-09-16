@@ -7,8 +7,8 @@ from jose import jwt, JWTError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import settings
-from api.models.user_models import Token
-from db.dals.user_dals import UserDAL
+from api.models.user import Token
+from db.dals.user_dal import UserDAL
 from db.models import User
 from db.session import get_db
 from hashing import Hasher

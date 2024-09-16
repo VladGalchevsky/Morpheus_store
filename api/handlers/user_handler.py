@@ -5,9 +5,9 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.models.user_models import UserCreate, ShowUser, DeleteUserResponse, \
+from api.models.user import UserCreate, ShowUser, DeleteUserResponse, \
     UpdateUserRequest, UpdatedUserResponse
-from db.dals.user_dals import UserDAL, UserWithOrderSummary
+from db.dals.user_dal import UserDAL, UserWithOrderSummary
 from db.session import get_db
 from hashing import Hasher
 

@@ -5,10 +5,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from api.models.order_models import CreateOrder, ShowOrder, UpdateOrder, DeleteOrderResponse, UpdatedOrderResponse
-from api.models.user_models import ShowUser
-from db.dals.order_dals import OrderDAL
-from db.dals.product_dals import ProductDAL
+from api.models.order import CreateOrder, ShowOrder, UpdateOrder, DeleteOrderResponse, UpdatedOrderResponse
+from api.models.user import ShowUser
+from db.dals.order_dal import OrderDAL
+from db.dals.product_dal import ProductDAL
 from db.session import get_db
 from enums import OrderStatusEnum
 

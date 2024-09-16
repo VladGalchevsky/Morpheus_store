@@ -6,7 +6,7 @@ from sqlalchemy.future import select
 from dataclasses_ import UserWithOrderSummary
 
 from db.models import User, Order
-from api.models.user_models import ShowUser
+from api.models.user import ShowUser
 from enums import OrderStatusEnum
 
 
