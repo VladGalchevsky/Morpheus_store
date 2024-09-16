@@ -4,7 +4,7 @@ import uuid
 from sqlalchemy import DateTime, Enum, Column, ForeignKey, String, Boolean
 from sqlalchemy.dialects.postgresql import UUID, INTEGER, FLOAT
 from sqlalchemy.orm import declarative_base, relationship
-from enums import OrderStatusEnum
+from enums import OrderStatusEnum, ProductStatusEnum
 
 
 # BLOCK WITH DATABASE MODELS #
@@ -35,3 +35,13 @@ class Order(Base):
     order_date = Column(DateTime, default=datetime.utcnow, nullable=False)
     user = relationship("User", back_populates="orders")
     
+
+class Product(Base):
+    __tablename__ = "products"
+
+    product_id = Column(UUID, primary_key=True, default=uuid.uuid4)
+    name = Column(String, nullable=False)
+    stock_quantity = Column(INTEGER, default=0)
+    price = Column(FLOAT, nullable=False)
+    description = Column(String, nullable=True)
+    product_status = Column(Enum(ProductStatusEnum), default=ProductStatusEnum.ACTIVE, nullable=False)
