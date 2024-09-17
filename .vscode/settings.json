@@ -4,21 +4,11 @@
 
   {
 
-    "column": 80,
+    "column": 119,
 
     "color": "#5f5f5f"
 
-  },
-
-  100,  // <- a ruler in the default color or as customized (with "editorRuler.foreground") at column 100
-
-  {
-
-    "column": 120,
-
-    "color": "#5a5858"
-
-  },
+  }
 
 ], 
 }
