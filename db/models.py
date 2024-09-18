@@ -28,6 +28,7 @@ class Order(Base):
 
     order_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.user_id"), nullable=False)
+    product_id = Column(UUID(as_uuid=True), ForeignKey("products.product_id"))
     quantity = Column(INTEGER, nullable=False)
     total_price = Column(FLOAT, nullable=False)
     description = Column(String, nullable=True)
@@ -39,7 +40,7 @@ class Order(Base):
 class Product(Base):
     __tablename__ = "products"
 
-    product_id = Column(UUID, primary_key=True, default=uuid.uuid4)
+    product_id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String, nullable=False)
     stock_quantity = Column(INTEGER, default=0)
     price = Column(FLOAT, nullable=False)

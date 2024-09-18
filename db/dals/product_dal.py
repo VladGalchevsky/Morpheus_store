@@ -60,21 +60,18 @@ class ProductDAL:
     
     async def update_stock(self, product_id: UUID, quantity_change: int):
         # Checking that the number is not less than 0
-        query = (update(Product).where(
-                Product.product_id == product_id,
-                Product.stock_quantity + quantity_change >= 0 
-            )
-            .values(stock_quantity=Product.stock_quantity + quantity_change)
-            .execution_option(synchronize_session="fetch")
-            .returning(Product.stock_quantity) 
-        )
-
+        query = (update(Product).
+                 where(Product.product_id == product_id,Product.stock_quantity + quantity_change >= 0).
+                 values(stock_quantity=Product.stock_quantity + quantity_change).
+                 execution_options(synchronize_session="fetch").
+                 returning(Product.stock_quantity)
+                )
         try:
-            res = await self.db_session.execute(query)
-            updated_stock_row = res.fetchone()
+            result = await self.db_session.execute(query)
+            updated_stock_row = result.fetchone()
             if updated_stock_row:
                 return updated_stock_row[0]
             else:
-                return None 
-        except IntegrityError as e:
-            return e 
+                return None
+        except IntegrityError:
+            return None

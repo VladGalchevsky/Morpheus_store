@@ -3,10 +3,10 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.routing import APIRouter
 
-from api.handlers.user_handler import user_router
-from api.handlers.order_handlers import order_router
-from api.handlers.login_handler import login_router
-from api.handlers.product_handler import product_router
+from api.routers.user_router import user_router
+from api.routers.order_router import order_router
+from api.routers.login_router import login_router
+from api.routers.product_router import product_router
 
 # BLOCK WITH API ROUTES #
 
