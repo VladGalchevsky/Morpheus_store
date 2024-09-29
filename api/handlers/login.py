@@ -15,10 +15,13 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login/token")
 login_router = APIRouter()
 
 
-async def _get_user_by_email_for_auth(email: str, user_dal:UserDAL):
-            return await user_dal.get_user_by_email(email=email)
+async def _get_user_by_email_for_auth(email: str, user_dal: UserDAL):
+    return await user_dal.get_user_by_email(email=email)
 
-async def authenticate_user(email: str, password: str, user_dal:UserDAL) -> Union[User, None]:
+
+async def authenticate_user(
+    email: str, password: str, user_dal: UserDAL
+) -> Union[User, None]:
     user = await _get_user_by_email_for_auth(email=email, user_dal=user_dal)
     if user is None:
         return
@@ -26,8 +29,11 @@ async def authenticate_user(email: str, password: str, user_dal:UserDAL) -> Unio
         return
     return user
 
-async def get_current_user_from_token(user_dal: Annotated[UserDAL, Depends(get_user_dal)], 
-                                      token: str = Depends(oauth2_scheme)):
+
+async def get_current_user_from_token(
+    user_dal: Annotated[UserDAL, Depends(get_user_dal)],
+    token: str = Depends(oauth2_scheme),
+):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",

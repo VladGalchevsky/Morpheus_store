@@ -4,7 +4,7 @@ from typing import Annotated
 from fastapi import APIRouter, status, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 
-from api.handlers.login_handler import authenticate_user, get_current_user_from_token
+from api.handlers.login import authenticate_user, get_current_user_from_token
 import settings
 from api.models.user import Token
 from db.dals.user_dal import UserDAL
@@ -16,12 +16,15 @@ login_router = APIRouter()
 
 
 @login_router.post("/token", response_model=Token)
-async def login_for_access_token(user_dal: Annotated[UserDAL, Depends(get_user_dal)],
-                                 form_data: OAuth2PasswordRequestForm = Depends()):
+async def login_for_access_token(
+    user_dal: Annotated[UserDAL, Depends(get_user_dal)],
+    form_data: OAuth2PasswordRequestForm = Depends(),
+):
     user = await authenticate_user(form_data.username, form_data.password, user_dal)
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,detail="Incorrect username or password",
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
         )
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
@@ -29,6 +32,7 @@ async def login_for_access_token(user_dal: Annotated[UserDAL, Depends(get_user_d
         expires_delta=access_token_expires,
     )
     return {"access_token": access_token, "token_type": "bearer"}
+
 
 @login_router.get("/test_auth_endpoint")
 async def sample_endpoint_under_jwt(

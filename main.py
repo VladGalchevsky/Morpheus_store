@@ -3,10 +3,10 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.routing import APIRouter
 
-from api.routers.user_router import user_router
-from api.routers.order_router import order_router
-from api.routers.login_router import login_router
-from api.routers.product_router import product_router
+from api.routers.user import user_router
+from api.routers.order import order_router
+from api.routers.login import login_router
+from api.routers.product import product_router
 
 # BLOCK WITH API ROUTES #
 
@@ -16,7 +16,7 @@ app = FastAPI(title="nnp-university")
 # create the instance for the routes
 main_api_router = APIRouter()
 
-# set routes to the app instance 
+# set routes to the app instance
 main_api_router.include_router(user_router, prefix="/user", tags=["user"])
 
 main_api_router.include_router(order_router, prefix="/order", tags=["order"])

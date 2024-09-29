@@ -23,6 +23,7 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     orders = relationship("Order", back_populates="user")
 
+
 class Order(Base):
     __tablename__ = "orders"
 
@@ -32,10 +33,12 @@ class Order(Base):
     quantity = Column(INTEGER, nullable=False)
     total_price = Column(FLOAT, nullable=False)
     description = Column(String, nullable=True)
-    order_status = Column(Enum(OrderStatusEnum), default=OrderStatusEnum.PENDING, nullable=False)
+    order_status = Column(
+        Enum(OrderStatusEnum), default=OrderStatusEnum.PENDING, nullable=False
+    )
     order_date = Column(DateTime, default=datetime.utcnow, nullable=False)
     user = relationship("User", back_populates="orders")
-    
+
 
 class Product(Base):
     __tablename__ = "products"
@@ -45,4 +48,6 @@ class Product(Base):
     stock_quantity = Column(INTEGER, default=0)
     price = Column(FLOAT, nullable=False)
     description = Column(String, nullable=True)
-    product_status = Column(Enum(ProductStatusEnum), default=ProductStatusEnum.ACTIVE, nullable=False)
+    product_status = Column(
+        Enum(ProductStatusEnum), default=ProductStatusEnum.ACTIVE, nullable=False
+    )

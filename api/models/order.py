@@ -10,6 +10,7 @@ from api.models.user import ShowUser
 class TunedModel(BaseModel):
     class Config:
         """tells pydantic to convert even non dict obj to json"""
+
         form_attribute = True
 
 
@@ -39,20 +40,27 @@ class UpdateOrder(BaseModel):
     @validator("quantity", pre=True, always=True)
     def validate_quantity(cls, value):
         if value is not None and value <= 0:
-            raise HTTPException(status_code=422, detail="Quantity should be greater than 0")
+            raise HTTPException(
+                status_code=422, detail="Quantity should be greater than 0"
+            )
         return value
 
     @validator("total_price", pre=True, always=True)
     def validate_total_price(cls, value):
         if value is not None and value <= 0:
-            raise HTTPException(status_code=422, detail="Total price should be greater than 0")
+            raise HTTPException(
+                status_code=422, detail="Total price should be greater than 0"
+            )
         return value
-    
+
     @root_validator(pre=True)
     def validate_non_empty_update(cls, values):
         # Raise an error if all fields are None
         if not any(values.values()):
-            raise HTTPException(status_code=422, detail="At least one parameter for order update must be provided")
+            raise HTTPException(
+                status_code=422,
+                detail="At least one parameter for order update must be provided",
+            )
         return values
 
 

@@ -11,9 +11,12 @@ LETTER_MATCH_PATTERN = re.compile(r"^[а-яА-Яa-zA-Z\-]+$")
 class TunedModel(BaseModel):
     class Config:
         """tells pydantic to convert even non dict obj to json"""
+
         form_attribute = True
 
+
 # BLOCK WITH USER MODELS #
+
 
 class ShowUser(TunedModel):
     user_id: uuid.UUID
@@ -23,6 +26,7 @@ class ShowUser(TunedModel):
     is_active: bool
     total_orders: int | None = None
     total_amount: float | None = None
+
 
 class UserCreate(BaseModel):
     name: str
@@ -37,7 +41,7 @@ class UserCreate(BaseModel):
                 status_code=422, detail="Name should contains only letters"
             )
         return value
-    
+
     @validator("surname")
     def validate_surname(cls, value):
         if not LETTER_MATCH_PATTERN.match(value):
@@ -49,7 +53,7 @@ class UserCreate(BaseModel):
 
 class DeleteUserResponse(BaseModel):
     deleted_user_id: uuid.UUID
- 
+
 
 class UpdatedUserResponse(BaseModel):
     updated_user_id: uuid.UUID
@@ -75,8 +79,6 @@ class UpdateUserRequest(BaseModel):
                 status_code=422, detail="Surname should contains only letters"
             )
         return value
-    
-   
 
 
 class Token(BaseModel):
